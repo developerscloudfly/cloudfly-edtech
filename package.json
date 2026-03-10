@@ -1,6 +1,9 @@
 {
   "name": "cloudfly-edtech",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
