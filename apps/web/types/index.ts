@@ -118,7 +118,7 @@ export interface CertificateDTO {
   user?: UserDTO;
 }
 
-// ─── NextAuth session augmentation ───────────────────────────────────────────
+// ─── NextAuth v5 session + JWT augmentation ──────────────────────────────────
 
 declare module 'next-auth' {
   interface Session {
@@ -131,10 +131,8 @@ declare module 'next-auth' {
       avatar?: string;
     };
   }
-}
 
-declare module 'next-auth/jwt' {
-  interface JWT {
+  interface User {
     id: string;
     role: string;
     avatar?: string;

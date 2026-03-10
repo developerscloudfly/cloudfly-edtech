@@ -37,7 +37,7 @@ function isPublicRoute(pathname: string): boolean {
   return false;
 }
 
-export default auth(function middleware(req: NextRequest & { auth: { user?: { role?: string } } | null }) {
+export default auth(function proxy(req: NextRequest & { auth: { user?: { role?: string } } | null }) {
   const { pathname } = req.nextUrl;
   const session = (req as unknown as { auth: { user?: { role?: string } } | null }).auth;
 

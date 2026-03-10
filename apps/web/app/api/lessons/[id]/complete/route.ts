@@ -5,15 +5,16 @@ import Enrollment from '@/models/Enrollment';
 import Lesson from '@/models/Lesson';
 import mongoose from 'mongoose';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
-    const lesson = await Lesson.findById(params.id);
+    const lesson = await Lesson.findById(id);
     if (!lesson) {
       return NextResponse.json({ success: false, error: 'Lesson not found' }, { status: 404 });
     }
@@ -27,9 +28,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ success: false, error: 'Not enrolled' }, { status: 403 });
     }
 
-    const lessonObjectId = new mongoose.Types.ObjectId(params.id);
-    const alreadyCompleted = enrollment.completedLessons.some((id) =>
-      id.equals(lessonObjectId)
+    const lessonObjectId = new mongoose.Types.ObjectId(id);
+    const alreadyCompleted = enrollment.completedLessons.some((lid) =>
+      lid.equals(lessonObjectId)
     );
 
     if (!alreadyCompleted) {

@@ -1,14 +1,12 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-  throw new Error('Razorpay credentials are not defined');
+function getRazorpay(): Razorpay {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) throw new Error('Razorpay credentials are not defined');
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
 }
-
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
 
 export async function createRazorpayOrder({
   amount,
@@ -21,16 +19,12 @@ export async function createRazorpayOrder({
   courseId: string;
   userId: string;
 }) {
-  const order = await razorpay.orders.create({
+  const razorpay = getRazorpay();
+  return razorpay.orders.create({
     amount: Math.round(amount * 100),
     currency,
-    notes: {
-      courseId,
-      userId,
-    },
+    notes: { courseId, userId },
   });
-
-  return order;
 }
 
 export function verifyRazorpaySignature({
@@ -42,11 +36,11 @@ export function verifyRazorpaySignature({
   paymentId: string;
   signature: string;
 }): boolean {
-  const body = `${orderId}|${paymentId}`;
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-    .update(body)
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!secret) throw new Error('RAZORPAY_KEY_SECRET is not defined');
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(`${orderId}|${paymentId}`)
     .digest('hex');
-
-  return expectedSignature === signature;
+  return expected === signature;
 }

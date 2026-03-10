@@ -3,18 +3,19 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/db';
 import ProjectSubmission from '@/models/ProjectSubmission';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user || !['instructor', 'admin'].includes(session.user.role)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
     await connectDB();
     const { grade, instructorFeedback } = await req.json();
 
     const submission = await ProjectSubmission.findByIdAndUpdate(
-      params.id,
+      id,
       {
         $set: {
           grade,

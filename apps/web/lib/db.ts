@@ -1,10 +1,7 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
+// Validation is deferred to runtime (inside connectDB) so the build succeeds
+// without env vars — the error will only fire when an API route actually runs.
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -16,7 +13,8 @@ declare global {
   var mongoose: MongooseCache | undefined;
 }
 
-const cached: MongooseCache = global.mongoose ?? { conn: null, promise: null };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const cached: MongooseCache = (global as any).mongoose ?? { conn: null, promise: null };
 
 if (!global.mongoose) {
   global.mongoose = cached;
@@ -28,11 +26,10 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error('Please define the MONGODB_URI environment variable');
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts);
+    cached.promise = mongoose.connect(uri, { bufferCommands: false });
   }
 
   try {

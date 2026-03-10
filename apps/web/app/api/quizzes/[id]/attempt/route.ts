@@ -6,15 +6,16 @@ import QuizAttempt from '@/models/QuizAttempt';
 import Enrollment from '@/models/Enrollment';
 import mongoose from 'mongoose';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     await connectDB();
-    const quiz = await Quiz.findById(params.id);
+    const quiz = await Quiz.findById(id);
     if (!quiz) {
       return NextResponse.json({ success: false, error: 'Quiz not found' }, { status: 404 });
     }

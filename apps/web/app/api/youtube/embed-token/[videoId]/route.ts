@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getVideoDetails, getYouTubeEmbedUrl } from '@/lib/youtube';
 
-export async function GET(req: NextRequest, { params }: { params: { videoId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ videoId: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { videoId } = params;
+    const { videoId } = await params;
     const embedUrl = getYouTubeEmbedUrl(videoId);
     const details = await getVideoDetails(videoId);
 

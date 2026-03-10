@@ -4,10 +4,11 @@ import Course from '@/models/Course';
 import { auth } from '@/lib/auth';
 
 // GET /api/courses/[slug]
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await params;
     await connectDB();
-    const course = await Course.findOne({ slug: params.slug })
+    const course = await Course.findOne({ slug })
       .populate('instructorId', 'name avatar bio')
       .lean();
 
@@ -23,17 +24,18 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
 }
 
 // PATCH /api/courses/[slug]
-export async function PATCH(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { slug } = await params;
     await connectDB();
     const body = await req.json();
 
-    const course = await Course.findOneAndUpdate({ slug: params.slug }, { $set: body }, { new: true });
+    const course = await Course.findOneAndUpdate({ slug }, { $set: body }, { new: true });
     if (!course) {
       return NextResponse.json({ success: false, error: 'Course not found' }, { status: 404 });
     }
@@ -46,15 +48,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
 }
 
 // DELETE /api/courses/[slug]
-export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
+    const { slug } = await params;
     await connectDB();
-    await Course.findOneAndDelete({ slug: params.slug });
+    await Course.findOneAndDelete({ slug });
     return NextResponse.json({ success: true, message: 'Course deleted' });
   } catch (err) {
     console.error('[DELETE /api/courses/[slug]]', err);

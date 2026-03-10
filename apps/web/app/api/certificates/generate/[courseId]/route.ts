@@ -5,15 +5,15 @@ import Certificate from '@/models/Certificate';
 import Enrollment from '@/models/Enrollment';
 import Lesson from '@/models/Lesson';
 
-export async function POST(req: NextRequest, { params }: { params: { courseId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { courseId } = await params;
     await connectDB();
-    const { courseId } = params;
 
     const enrollment = await Enrollment.findOne({ userId: session.user.id, courseId });
     if (!enrollment) {

@@ -1,11 +1,16 @@
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 
-const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY!;
-const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET!;
-const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL!;
+function getLiveKitCreds() {
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
+  const url = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+  if (!apiKey || !apiSecret || !url) throw new Error('LiveKit credentials are not defined');
+  return { apiKey, apiSecret, url };
+}
 
 export function getRoomServiceClient(): RoomServiceClient {
-  return new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+  const { url, apiKey, apiSecret } = getLiveKitCreds();
+  return new RoomServiceClient(url, apiKey, apiSecret);
 }
 
 export async function generateLiveKitToken({
@@ -19,12 +24,12 @@ export async function generateLiveKitToken({
   participantId: string;
   isInstructor?: boolean;
 }): Promise<string> {
-  const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
+  const { apiKey, apiSecret } = getLiveKitCreds();
+  const at = new AccessToken(apiKey, apiSecret, {
     identity: participantId,
     name: participantName,
     ttl: '4h',
   });
-
   at.addGrant({
     roomJoin: true,
     room: roomName,
@@ -33,8 +38,7 @@ export async function generateLiveKitToken({
     canPublishData: true,
     roomAdmin: isInstructor,
   });
-
-  return await at.toJwt();
+  return at.toJwt();
 }
 
 export async function endLiveKitRoom(roomName: string): Promise<void> {

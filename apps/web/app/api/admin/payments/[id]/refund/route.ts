@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/db';
 import Payment from '@/models/Payment';
-import { stripe } from '@/lib/stripe';
+import { getStripeClient } from '@/lib/stripe';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== 'admin') {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
     await connectDB();
-    const payment = await Payment.findById(params.id);
+    const payment = await Payment.findById(id);
 
     if (!payment) {
       return NextResponse.json({ success: false, error: 'Payment not found' }, { status: 404 });
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     if (payment.gateway === 'stripe') {
-      await stripe.refunds.create({ payment_intent: payment.gatewayPaymentId });
+      await getStripeClient().refunds.create({ payment_intent: payment.gatewayPaymentId });
     }
     // Razorpay refund would require different API call
 
