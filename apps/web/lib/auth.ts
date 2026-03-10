@@ -68,7 +68,8 @@ export const authConfig: NextAuthConfig = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  // NextAuth v5 reads AUTH_SECRET automatically; fallback to NEXTAUTH_SECRET for compat
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
