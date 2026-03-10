@@ -30,7 +30,7 @@ const CloudCreditSchema = new Schema<ICloudCredit>(
   { timestamps: true }
 );
 
-CloudCreditSchema.index({ userId: 1 });
+// userId already indexed via unique:true in field def
 
 const CloudCredit: Model<ICloudCredit> =
   mongoose.models.CloudCredit ||

@@ -23,7 +23,7 @@ const CertificateSchema = new Schema<ICertificate>(
 );
 
 CertificateSchema.index({ userId: 1, courseId: 1 }, { unique: true });
-CertificateSchema.index({ shareableToken: 1 });
+// shareableToken already indexed via unique:true in field def
 
 const Certificate: Model<ICertificate> =
   mongoose.models.Certificate ||

@@ -51,7 +51,7 @@ const CourseSchema = new Schema<ICourse>(
   { timestamps: true }
 );
 
-CourseSchema.index({ slug: 1 });
+// slug already indexed via unique:true in field def
 CourseSchema.index({ instructorId: 1 });
 CourseSchema.index({ status: 1 });
 CourseSchema.index({ tags: 1 });
